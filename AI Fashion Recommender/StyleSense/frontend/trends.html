@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fashion Trends - StyleSense</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <h1 class="logo">✨ StyleSense</h1>
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="recommendations.html">Recommendations</a></li>
+                    <li><a href="image-upload.html">Upload</a></li>
+                    <li><a href="trends.html" class="active">Trends</a></li>
+                    <li><a href="dashboard.html">My Looks</a></li>
+                    <li><a href="chat.html">Chat Stylist</a></li>
+                </ul>
+                <button id="themeToggle" class="theme-btn">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <section class="trends-section">
+            <h2>Fashion Trends 2026</h2>
+            <p class="subtitle">Stay updated with the latest fashion trends and styles</p>
+
+            <div class="trends-filter">
+                <label for="region">📍 Region:</label>
+                <select id="region">
+                    <option value="Global">Global</option>
+                    <option value="India">India</option>
+                    <option value="United States">United States</option>
+                    <option value="Europe">Europe</option>
+                    <option value="Asia">Asia</option>
+                </select>
+                <button class="btn btn-primary" id="getTrendsBtn">Get Trends</button>
+            </div>
+
+            <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                <div class="spinner"></div>
+                <p>Fetching latest trends...</p>
+            </div>
+
+            <div id="trendsResults" class="results-container" style="display: none;">
+                <h3>📊 Current Fashion Trends</h3>
+                <div id="trendsContent" class="recommendation-box"></div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 StyleSense. All rights reserved. | Made with ❤️ by AI Fashion Team</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+
+        document.getElementById('getTrendsBtn').addEventListener('click', async () => {
+            const region = document.getElementById('region').value;
+
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('trendsResults').style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_URL}/trends`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ region })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('trendsContent').innerHTML = 
+                        `<div class="recommendation-text"><strong>${region} Trends:</strong><br>${data.trends.replace(/\n/g, '<br>')}</div>`;
+                    document.getElementById('trendsResults').style.display = 'block';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error fetching trends: ' + error.message);
+            } finally {
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+        });
+
+        // Load trends on page load
+        window.addEventListener('load', () => {
+            document.getElementById('getTrendsBtn').click();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Stylist - StyleSense</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <h1 class="logo">✨ StyleSense</h1>
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="recommendations.html">Recommendations</a></li>
+                    <li><a href="image-upload.html">Upload</a></li>
+                    <li><a href="trends.html">Trends</a></li>
+                    <li><a href="dashboard.html">My Looks</a></li>
+                    <li><a href="chat.html" class="active">Chat Stylist</a></li>
+                </ul>
+                <button id="themeToggle" class="theme-btn">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <section class="chat-section">
+            <h2>Chat with Your AI Stylist</h2>
+            <p class="subtitle">Ask questions and get instant fashion advice</p>
+
+            <div class="chat-container">
+                <div id="chatMessages" class="chat-messages">
+                    <div class="message bot">
+                        <p>👋 Hi! I'm your personal AI stylist. Ask me anything about fashion, styling, or outfits!</p>
+                    </div>
+                </div>
+
+                <div class="chat-input-area">
+                    <form id="chatForm">
+                        <input type="text" id="chatInput" placeholder="Ask me about fashion..." autocomplete="off">
+                        <button type="submit" class="btn btn-primary">Send</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 StyleSense. All rights reserved. | Made with ❤️ by AI Fashion Team</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+
+        document.getElementById('chatForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Add user message to chat
+            addMessageToChat(message, 'user');
+            input.value = '';
+
+            try {
+                const response = await fetch(`${API_URL}/stylist-chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    addMessageToChat(data.response, 'bot');
+                } else {
+                    addMessageToChat('Sorry, I encountered an error. Please try again.', 'bot');
+                }
+            } catch (error) {
+                addMessageToChat('Error connecting to stylist. Please try again later.', 'bot');
+                console.error('Error:', error);
+            }
+        });
+
+        function addMessageToChat(message, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.innerHTML = `<p>${message.replace(/\n/g, '<br>')}</p>`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Recommendations - StyleSense</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <h1 class="logo">✨ StyleSense</h1>
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="recommendations.html" class="active">Recommendations</a></li>
+                    <li><a href="image-upload.html">Upload</a></li>
+                    <li><a href="trends.html">Trends</a></li>
+                    <li><a href="dashboard.html">My Looks</a></li>
+                    <li><a href="chat.html">Chat Stylist</a></li>
+                </ul>
+                <button id="themeToggle" class="theme-btn">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <section class="recommendations-section">
+            <h2>Get Your Personalized Outfit Recommendation</h2>
+            <p class="subtitle">Tell us about your style preferences and get AI-powered suggestions</p>
+
+            <div class="form-container">
+                <form id="preferencesForm">
+                    <div class="form-group">
+                        <label for="occasion">🎭 Occasion</label>
+                        <select id="occasion" required>
+                            <option value="">Select an occasion</option>
+                            <option value="Party">Party</option>
+                            <option value="Casual">Casual</option>
+                            <option value="Office">Office</option>
+                            <option value="Wedding">Wedding</option>
+                            <option value="Date">Date</option>
+                            <option value="Gym">Gym</option>
+                            <option value="Beach">Beach</option>
+                            <option value="Formal">Formal</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">👤 Gender</label>
+                        <select id="gender" required>
+                            <option value="">Select gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Non-binary">Non-binary</option>
+                            <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="colors">🎨 Favorite Colors (comma-separated)</label>
+                        <input type="text" id="colors" placeholder="e.g., Pink, White, Black" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="budget">💰 Budget Range</label>
+                        <select id="budget" required>
+                            <option value="">Select budget</option>
+                            <option value="Budget">Budget (Low)</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Premium">Premium</option>
+                            <option value="Luxury">Luxury</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="styleType">👗 Style Type</label>
+                        <select id="styleType" required>
+                            <option value="">Select style</option>
+                            <option value="Traditional">Traditional</option>
+                            <option value="Western">Western</option>
+                            <option value="Streetwear">Streetwear</option>
+                            <option value="Minimalist">Minimalist</option>
+                            <option value="Bohemian">Bohemian</option>
+                            <option value="Vintage">Vintage</option>
+                            <option value="Athletic">Athletic</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bodyType">💪 Body Type (Optional)</label>
+                        <select id="bodyType">
+                            <option value="">Not specified</option>
+                            <option value="Slim">Slim</option>
+                            <option value="Athletic">Athletic</option>
+                            <option value="Average">Average</option>
+                            <option value="Curvy">Curvy</option>
+                            <option value="Plus Size">Plus Size</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Get Outfit Recommendations</button>
+                </form>
+            </div>
+
+            <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                <div class="spinner"></div>
+                <p>Crafting your perfect outfit...</p>
+            </div>
+
+            <div id="resultsContainer" class="results-container" style="display: none;">
+                <h3>✨ Your AI-Powered Outfit Recommendation</h3>
+                <div id="recommendationResult" class="recommendation-box"></div>
+                <div class="result-actions">
+                    <button class="btn btn-secondary" id="saveOutfitBtn">💾 Save This Outfit</button>
+                    <button class="btn btn-secondary" id="newRecommendationBtn">🔄 Get New Recommendation</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 StyleSense. All rights reserved. | Made with ❤️ by AI Fashion Team</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+
+        document.getElementById('preferencesForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                user_id: 'user_' + Date.now(),
+                occasion: document.getElementById('occasion').value,
+                gender: document.getElementById('gender').value,
+                favorite_colors: document.getElementById('colors').value,
+                budget: document.getElementById('budget').value,
+                style_type: document.getElementById('styleType').value,
+                body_type: document.getElementById('bodyType').value || 'Not specified'
+            };
+
+            // Show loading
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('resultsContainer').style.display = 'none';
+
+            try {
+                // Save preferences
+                await fetch(`${API_URL}/preferences`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                // Get recommendations
+                const response = await fetch(`${API_URL}/recommendations`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('recommendationResult').innerHTML = 
+                        `<div class="recommendation-text">${data.recommendation.replace(/\n/g, '<br>')}</div>`;
+                    document.getElementById('resultsContainer').style.display = 'block';
+
+                    // Store for saving
+                    window.currentRecommendation = {
+                        outfit_description: data.recommendation,
+                        accessories: 'See full recommendation above',
+                        styling_tips: 'See full recommendation above',
+                        occasion: formData.occasion,
+                        user_id: formData.user_id
+                    };
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error fetching recommendations: ' + error.message);
+            } finally {
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+        });
+
+        document.getElementById('saveOutfitBtn').addEventListener('click', async () => {
+            if (window.currentRecommendation) {
+                try {
+                    const response = await fetch(`${API_URL}/saved-outfits`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(window.currentRecommendation)
+                    });
+
+                    if (response.ok) {
+                        alert('✨ Outfit saved to your collection!');
+                    }
+                } catch (error) {
+                    alert('Error saving outfit: ' + error.message);
+                }
+            }
+        });
+
+        document.getElementById('newRecommendationBtn').addEventListener('click', () => {
+            document.getElementById('preferencesForm').reset();
+            document.getElementById('resultsContainer').style.display = 'none';
+        });
+    </script>
+</body>
+</html>

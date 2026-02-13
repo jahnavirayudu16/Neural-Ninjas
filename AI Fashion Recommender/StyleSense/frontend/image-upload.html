@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload - StyleSense</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <h1 class="logo">✨ StyleSense</h1>
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="recommendations.html">Recommendations</a></li>
+                    <li><a href="image-upload.html" class="active">Upload</a></li>
+                    <li><a href="trends.html">Trends</a></li>
+                    <li><a href="dashboard.html">My Looks</a></li>
+                    <li><a href="chat.html">Chat Stylist</a></li>
+                </ul>
+                <button id="themeToggle" class="theme-btn">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <section class="upload-section">
+            <h2>Upload & Analyze Your Outfit</h2>
+            <p class="subtitle">Share an image of your outfit, and get AI-powered styling recommendations</p>
+
+            <div class="upload-container">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📷</div>
+                    <h3>Drop your image here or click to browse</h3>
+                    <p>Supported formats: JPG, PNG, GIF</p>
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                </div>
+
+                <div id="previewContainer" class="preview-container" style="display: none;">
+                    <img id="previewImage" alt="Preview">
+                    <button type="button" class="btn btn-secondary" id="removeImageBtn">Remove</button>
+                </div>
+
+                <button type="button" class="btn btn-primary" id="analyzeBtn" style="display: none;">Analyze Image</button>
+            </div>
+
+            <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                <div class="spinner"></div>
+                <p>Analyzing your outfit with AI...</p>
+            </div>
+
+            <div id="analysisResults" class="results-container" style="display: none;">
+                <h3>🎨 AI Analysis Results</h3>
+                <div id="analysisText" class="recommendation-box"></div>
+                <div class="result-actions">
+                    <button class="btn btn-secondary" id="uploadAnother">📤 Upload Another</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 StyleSense. All rights reserved. | Made with ❤️ by AI Fashion Team</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let selectedFile = null;
+
+        const uploadArea = document.getElementById('uploadArea');
+        const imageInput = document.getElementById('imageInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const removeImageBtn = document.getElementById('removeImageBtn');
+        const uploadAnother = document.getElementById('uploadAnother');
+
+        // Upload area click
+        uploadArea.addEventListener('click', () => imageInput.click());
+
+        // File input change
+        imageInput.addEventListener('change', (e) => {
+            handleFileSelect(e.target.files[0]);
+        });
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#667eea';
+            uploadArea.style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#ddd';
+            uploadArea.style.backgroundColor = 'transparent';
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#ddd';
+            uploadArea.style.backgroundColor = 'transparent';
+            handleFileSelect(e.dataTransfer.files[0]);
+        });
+
+        function handleFileSelect(file) {
+            if (file && file.type.startsWith('image/')) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                    uploadArea.style.display = 'none';
+                    previewContainer.style.display = 'block';
+                    analyzeBtn.style.display = 'inline-block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert('Please select a valid image file');
+            }
+        }
+
+        removeImageBtn.addEventListener('click', () => {
+            selectedFile = null;
+            imageInput.value = '';
+            uploadArea.style.display = 'block';
+            previewContainer.style.display = 'none';
+            analyzeBtn.style.display = 'none';
+            document.getElementById('analysisResults').style.display = 'none';
+        });
+
+        analyzeBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+            formData.append('user_id', 'user_' + Date.now());
+
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('analysisResults').style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_URL}/image-analysis`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('analysisText').innerHTML = 
+                        `<div class="recommendation-text">${data.analysis.replace(/\n/g, '<br>')}</div>`;
+                    document.getElementById('analysisResults').style.display = 'block';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error analyzing image: ' + error.message);
+            } finally {
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+        });
+
+        uploadAnother.addEventListener('click', removeImageBtn.click);
+    </script>
+</body>
+</html>
